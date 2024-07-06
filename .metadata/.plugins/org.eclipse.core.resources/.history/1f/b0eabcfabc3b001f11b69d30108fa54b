@@ -1,0 +1,78 @@
+package edu.utvt.attendance.persistence.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import edu.utvt.attendance.persistence.entities.Persona;
+import edu.utvt.attendance.persistence.repositories.PersonaRepository;
+
+@Service
+public class PersonaServiceImplementation implements PersonaService {
+
+	@Autowired
+	private PersonaRepository personaRepository;
+	
+	@Override
+	public Persona save(Persona persona) {
+		return this.personaRepository.save(persona);
+	}
+
+	@Override
+	public Persona update(Long id, Persona persona) {
+		
+		Optional<Persona> personaRepository = null;
+		
+		personaRepository = this.personaRepository.findById(id);
+		
+		if (personaRepository.isPresent()) {
+			personaRepository.get().setId(persona.getId());
+			personaRepository.get().setNombre(persona.getNombre());
+			
+			this.personaRepository.save(personaRepository.get());
+		}
+		
+		return personaRepository.orElseThrow();
+	}
+
+	@Override
+	public List<Persona> getAll() {
+		return this.personaRepository.findAll();
+	}
+
+	@Override
+	public Optional<Persona> findByid(Long id) {
+		return this.personaRepository.findById(id);
+	}
+
+	@Override
+	public ResponseEntity<Persona> deleteById(Long id) {
+		
+		Optional<Persona> personaOptional =  null;
+		ResponseEntity<Persona> responseEntity = null;
+		
+		personaOptional = this.personaRepository.findById(id);
+		
+		if (personaOptional.isPresent()) {
+			this.personaRepository.delete(personaOptional.get());
+			responseEntity = ResponseEntity.noContent().build();
+		}else {
+			responseEntity = ResponseEntity.notFound().build();
+		}
+		
+		return responseEntity;
+	}
+
+	@Override
+	public Page<Persona> get(Integer page, Integer size) {
+		PageRequest pageRequest = PageRequest.of(page, size, Sort.by("nombre")); 
+		return this.personaRepository.findAll(pageRequest);
+	}
+
+}
